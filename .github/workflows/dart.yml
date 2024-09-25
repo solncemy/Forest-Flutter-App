@@ -1,45 +1,49 @@
-name: Flutter CI
+name: Flutter CI/CD
 
 on:
   push:
     branches:
-      - main
+      - main  # Change this to your default branch
   pull_request:
     branches:
-      - main
+      - main  # Change this to your default branch
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.0.0'
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'
 
-    - name: Install dependencies
-      run: flutter pub get
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.0.0'  # Change to your Flutter version
 
-    - name: Run Flutter Analyzer
-      run: flutter analyze
+      - name: Run Flutter pub get
+        run: flutter pub get
 
-    - name: Run Flutter Format
-      run: flutter format --set-exit-if-changed .
+      - name: Analyze code
+        run: flutter analyze
 
-    - name: Run Unit Tests
-      run: flutter test
+      - name: Format code
+        run: flutter format --set-exit-if-changed .
 
-    - name: Run Integration Tests
-      run: flutter drive --target=integration_test/app_test.dart
+      - name: Run tests
+        run: flutter test
 
-    - name: Build APK
-      run: flutter build apk --release
+      - name: Build APK
+        run: flutter build apk --release
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v2
-      with:
-        name: build-apk
-        path: build/app/outputs/flutter-apk/app-release.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v2
+        with:
+          name: my_app_apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
