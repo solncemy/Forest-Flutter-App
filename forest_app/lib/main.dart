@@ -59,9 +59,9 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(height: 20),
-            TimerDisplay(), // Display remaining time
+            TimerDisplay(),
             const SizedBox(height: 20),
-            FocusButton(controller: _controller), // Start or stop timer
+            FocusButton(controller: _controller),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
@@ -117,7 +117,7 @@ class FocusButton extends StatelessWidget {
           }
         } else {
           timer.stopTimer();
-          Navigator.of(context).pop(); // Return to home screen
+          Navigator.of(context).pop();
         }
       },
       child: Text(timer.isGrowing ? 'Stop Focusing' : 'Start Focusing'),

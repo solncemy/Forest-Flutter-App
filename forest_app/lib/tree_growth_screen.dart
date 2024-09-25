@@ -39,9 +39,9 @@ class TreeGrowthScreen extends StatelessWidget {
                         duration: const Duration(seconds: 1),
                         width: 100,
                         height: 100 + (timer.timeLeft * 2 / 60),
-                        child: Image.asset(
-                          'assets/growth_tree.png',
-                        ),
+                        child: Image.asset(timer.timeLeft > (timer.timeLeft ~/ 2)
+                            ? 'assets/early_tree.png'
+                            : 'assets/growth_tree.png'),
                       ),
                       const SizedBox(height: 20),
                       const Text(
