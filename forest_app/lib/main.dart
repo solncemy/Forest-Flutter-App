@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'forest_timer.dart';
+import 'tree_growth_screen.dart';
+import 'session_history_screen.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -60,6 +63,15 @@ class _HomePageState extends State<HomePage> {
             TimerDisplay(),
             const SizedBox(height: 20),
             FocusButton(controller: _controller),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const SessionHistoryScreen()),
+                );
+              },
+              child: const Text('History of Sessions'),
+            ),
           ],
         ),
       ),
