@@ -3,20 +3,26 @@ import 'dart:async';
 import 'tree_growth_screen.dart';
 import 'package:provider/provider.dart';
 
-class ForestTimer with ChangeNotifier {
+class ForestTimer with ChangeNotifier, WidgetsBindingObserver {
   int _timeLeft = 0;
   Timer? _timer;
   bool _isGrowing = false;
+  bool _isDeadTree = false;
 
   int get timeLeft => _timeLeft;
   bool get isGrowing => _isGrowing;
+  bool get isDeadTree => _isDeadTree;
+
+  ForestTimer() {
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   void startTimer(int duration, BuildContext context) {
     _isGrowing = true;
-    _timeLeft = duration * 60; // Convert minutes to seconds
+    _isDeadTree = false;
+    _timeLeft = duration * 60;
     notifyListeners();
 
-    // Navigate to the Tree Growth Screen
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => const TreeGrowthScreen()),
     );
@@ -42,9 +48,21 @@ class ForestTimer with ChangeNotifier {
   @override
   void dispose() {
     _timer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused && _isGrowing) {
+      _isDeadTree = true;
+      stopTimer();
+      notifyListeners();
+    }
+  }
 }
+
+
 
 class TimerDisplay extends StatelessWidget {
   @override
@@ -72,16 +90,15 @@ class FocusButton extends StatelessWidget {
         if (!timer.isGrowing) {
           final int? duration = int.tryParse(controller.text);
           if (duration != null && duration > 0) {
-            timer.startTimer(duration, context); // Pass the duration in minutes
+            timer.startTimer(duration, context);
           } else {
-            // Show an error message if the input is invalid
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Please enter a valid number of minutes.')),
             );
           }
         } else {
           timer.stopTimer();
-          Navigator.of(context).pop(); // Go back when stopping
+          Navigator.of(context).pop();
         }
       },
       child: Text(timer.isGrowing ? 'Stop Focusing' : 'Start Focusing'),
