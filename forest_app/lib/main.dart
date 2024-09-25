@@ -4,7 +4,6 @@ import 'forest_timer.dart';
 import 'tree_growth_screen.dart';
 import 'session_history_screen.dart';
 
-
 void main() {
   runApp(const MyApp());
 }
@@ -60,14 +59,15 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(height: 20),
-            TimerDisplay(),
+            TimerDisplay(), // Display remaining time
             const SizedBox(height: 20),
-            FocusButton(controller: _controller),
+            FocusButton(controller: _controller), // Start or stop timer
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const SessionHistoryScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => const SessionHistoryScreen()),
                 );
               },
               child: const Text('History of Sessions'),
@@ -75,6 +75,52 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class TimerDisplay extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final timer = context.watch<ForestTimer>();
+
+    return Text(
+      timer.isGrowing
+          ? 'Time Left: ${timer.timeLeft}s'
+          : 'Focus Time is Over!',
+      style: TextStyle(
+        fontSize: 24,
+        color: timer.isGrowing ? Colors.green : Colors.red,
+      ),
+    );
+  }
+}
+
+class FocusButton extends StatelessWidget {
+  final TextEditingController controller;
+
+  const FocusButton({Key? key, required this.controller}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final timer = context.watch<ForestTimer>();
+    return ElevatedButton(
+      onPressed: () {
+        if (!timer.isGrowing) {
+          final int? duration = int.tryParse(controller.text);
+          if (duration != null && duration > 0) {
+            timer.startTimer(duration, context);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Please enter a valid number of minutes.')),
+            );
+          }
+        } else {
+          timer.stopTimer();
+          Navigator.of(context).pop(); // Return to home screen
+        }
+      },
+      child: Text(timer.isGrowing ? 'Stop Focusing' : 'Start Focusing'),
     );
   }
 }
