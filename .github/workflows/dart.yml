@@ -3,47 +3,69 @@ name: Flutter CI/CD
 on:
   push:
     branches:
-      - main  # Change this to your default branch
+      - main 
   pull_request:
     branches:
-      - main  # Change this to your default branch
+      - main 
 
 jobs:
-  build:
+  build_web:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up JDK
-        uses: actions/setup-java@v1
-        with:
-          java-version: '11'
-
-      - name: Install Flutter
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.0.0'  # Change to your Flutter version
+          flutter-version: '3.0.0'
 
-      - name: Run Flutter pub get
+      - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze code
+      - name: Analyze
         run: flutter analyze
-
-      - name: Format code
-        run: flutter format --set-exit-if-changed .
 
       - name: Run tests
         run: flutter test
 
-      - name: Build APK
-        run: flutter build apk --release
+      - name: Build web app
+        run: flutter build web --release
 
-      - name: Upload APK
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main' # Only deploy on main branch
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
+
+  build_windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.0.0'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Build Windows app
+        run: flutter build windows --release
+
+      - name: Archive Windows build
         uses: actions/upload-artifact@v2
         with:
-          name: my_app_apk
-          path: build/app/outputs/flutter-apk/app-release.apk
-
+          name: windows-build
+          path: build/windows/runner/Release/
