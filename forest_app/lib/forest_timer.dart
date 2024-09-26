@@ -1,31 +1,39 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 import 'tree_growth_screen.dart';
-import 'package:provider/provider.dart';
+import 'dart:async';
+import 'dart:convert'; // Import for JSON encoding/decoding
+import 'package:shared_preferences/shared_preferences.dart'; // Import for shared preferences
 
 class ForestTimer with ChangeNotifier, WidgetsBindingObserver {
   int _timeLeft = 0;
+  int _originalDuration = 0; // Store the original duration here
   Timer? _timer;
   bool _isGrowing = false;
   bool _isDeadTree = false;
+  List<Map<String, dynamic>> _sessionHistory = [];
 
   int get timeLeft => _timeLeft;
   bool get isGrowing => _isGrowing;
   bool get isDeadTree => _isDeadTree;
+  List<Map<String, dynamic>> get sessionHistory => _sessionHistory;
 
   ForestTimer() {
     WidgetsBinding.instance.addObserver(this);
+    loadSessionHistory(); // Load history on initialization
   }
 
-  void startTimer(int duration, BuildContext context) {
+  void startTimer(int duration, [BuildContext? context]) {
     _isGrowing = true;
     _isDeadTree = false;
-    _timeLeft = duration * 60;
+    _originalDuration = duration; // Store the original duration
+    _timeLeft = duration * 60; // Set time left to the duration in seconds
     notifyListeners();
 
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const TreeGrowthScreen()),
-    );
+    if (context != null) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const TreeGrowthScreen()),
+      );
+    }
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_timeLeft > 0) {
@@ -34,15 +42,58 @@ class ForestTimer with ChangeNotifier, WidgetsBindingObserver {
       } else {
         _isGrowing = false;
         _timer?.cancel();
+        completeSession(); // Call completeSession when time is up
         notifyListeners();
       }
     });
   }
 
   void stopTimer() {
+    if (_isGrowing) {
+      _isDeadTree = true;
+      addSession(false);
+    }
     _isGrowing = false;
     _timer?.cancel();
     notifyListeners();
+    saveSessionHistory(); // Save history when stopping the timer
+  }
+
+  void completeSession() {
+    _isGrowing = false;
+    _isDeadTree = false;
+    addSession(true);
+  }
+
+  void addSession(bool completed) {
+    final now = DateTime.now();
+    _sessionHistory.add({
+      'duration': _originalDuration, // Use the original duration here
+      'date': now.toIso8601String(),
+      'completed': completed,
+    });
+    notifyListeners();
+    saveSessionHistory(); // Save history after adding a session
+  }
+
+  Future<void> saveSessionHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> sessionStrings = _sessionHistory
+        .map((session) => json.encode(session))
+        .toList();
+    await prefs.setStringList('sessionHistory', sessionStrings);
+  }
+
+  Future<void> loadSessionHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String>? sessionStrings = prefs.getStringList('sessionHistory');
+
+    if (sessionStrings != null) {
+      _sessionHistory = sessionStrings
+          .map((sessionString) => Map<String, dynamic>.from(json.decode(sessionString)))
+          .toList();
+      notifyListeners(); // Notify listeners after loading
+    }
   }
 
   @override
@@ -59,49 +110,5 @@ class ForestTimer with ChangeNotifier, WidgetsBindingObserver {
       stopTimer();
       notifyListeners();
     }
-  }
-}
-
-
-
-class TimerDisplay extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final timer = context.watch<ForestTimer>();
-    return Text(
-      timer.isGrowing
-          ? 'Time Left: ${timer.timeLeft}s'
-          : 'Focus Time is Over!',
-      style: TextStyle(fontSize: 24, color: timer.isGrowing ? Colors.green : Colors.red),
-    );
-  }
-}
-
-class FocusButton extends StatelessWidget {
-  final TextEditingController controller;
-
-  const FocusButton({Key? key, required this.controller}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final timer = context.watch<ForestTimer>();
-    return ElevatedButton(
-      onPressed: () {
-        if (!timer.isGrowing) {
-          final int? duration = int.tryParse(controller.text);
-          if (duration != null && duration > 0) {
-            timer.startTimer(duration, context);
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Please enter a valid number of minutes.')),
-            );
-          }
-        } else {
-          timer.stopTimer();
-          Navigator.of(context).pop();
-        }
-      },
-      child: Text(timer.isGrowing ? 'Stop Focusing' : 'Start Focusing'),
-    );
   }
 }

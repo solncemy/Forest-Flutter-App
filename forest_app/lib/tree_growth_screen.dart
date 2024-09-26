@@ -16,57 +16,51 @@ class TreeGrowthScreen extends StatelessWidget {
       body: Center(
         child: timer.isDeadTree
             ? Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 100,
-              height: 100,
-              child: Image.asset('assets/dead_tree.png'),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Your tree has died. Start focusing again to grow a new one!',
-              style: TextStyle(fontSize: 24, color: Colors.red),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        )
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/dead_tree.png',
+                    width: 100,
+                    height: 100,
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Your tree has died. Start focusing again to grow a new one!',
+                    style: TextStyle(fontSize: 24, color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              )
             : timer.isGrowing
-            ? Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(seconds: 1),
-              width: 100,
-              height: 100 + (timer.timeLeft * 2 / 60),
-              child: Image.asset(timer.timeLeft > (timer.timeLeft ~/ 2)
-                  ? 'assets/early_tree.png'
-                  : 'assets/growth_tree.png'),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Your tree is growing!',
-              style: const TextStyle(fontSize: 24),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Time Left: ${timer.timeLeft}s',
-              style: const TextStyle(fontSize: 24),
-            ),
-          ],
-        )
-            : const Text(
-          'Your tree has grown. Start focusing again to grow a new one!',
-          style: TextStyle(fontSize: 24, color: Colors.red),
-          textAlign: TextAlign.center,
-        ),
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(seconds: 1),
+                        width: 100,
+                        height: 100 + (timer.timeLeft * 2 / 60),
+                        child: Image.asset(timer.timeLeft > (timer.timeLeft ~/ 2)
+                            ? 'assets/early_tree.png'
+                            : 'assets/growth_tree.png'),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Your tree is growing!',
+                        style: TextStyle(fontSize: 24),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Time Left: ${timer.timeLeft}s',
+                        style: const TextStyle(fontSize: 24),
+                      ),
+                    ],
+                  )
+                : const Text(
+                    'Your tree has grown. Start focusing again to grow a new one!',
+                    style: TextStyle(fontSize: 24, color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
       ),
     );
   }
 }
-
-
-
-
-
-
